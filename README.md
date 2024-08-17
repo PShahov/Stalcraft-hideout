@@ -1,0 +1,2 @@
+# Stalcraft hideout
+ 
