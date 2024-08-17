@@ -1,0 +1,249 @@
+:root{
+    --bg-color: #000018;
+}
+
+body{
+    font-family: "Roboto";
+    background-color: var(--bg-color);
+    padding: 30px;
+    padding-left: 100px;
+    color: white;
+}
+a{
+    /* color:#fde910; */
+    /* text-decoration: none; */
+}
+
+header{
+    position: relative;
+    border-bottom: 1px solid white;
+    margin-bottom: 15px;
+}
+header > .sidebar{
+    position: fixed;
+    left:0px;
+    top: 0px;
+    height: 100vh;
+    width: 70px;
+    border-right: 1px solid white;
+    background-color: var(--bg-color);
+
+    transition: all 0.15s ease-in-out;
+    padding: 10px;
+    overflow: hidden;
+}
+header > .sidebar:hover{
+    width: 240px;
+}
+header > .sidebar .sidebar--title{
+    height: 70px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+}
+header > .sidebar .sidebar--title span{
+    transition: all 0.15s ease-in-out;
+}
+header > .sidebar:hover .sidebar--title span{
+    font-size: 3em;
+    font-weight: bold;
+}
+header > .sidebar .sidebar--links{
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding-top: 15px;
+    transition: all 0.15s ease-in-out;
+}
+header > .sidebar:hover .sidebar--links{
+    gap: 10px;
+    padding-top: 5px;
+}
+header > .sidebar .sidebar--links a{
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+    align-items: center;
+    justify-content: start;
+    transition: all 0.15s ease-in-out;
+    text-transform: uppercase;
+    text-decoration: none;
+    font-weight:600;
+    color: white;
+}
+header > .sidebar .sidebar--links a:hover{
+    background-color: #ffffff;
+    color: black;
+}
+header > .sidebar .sidebar--links a span{
+    opacity: 0;
+    transition: all 0.15s ease-in-out;
+}
+header > .sidebar:hover .sidebar--links a span{
+    opacity: 1;
+}
+header > .sidebar .sidebar--links a img{
+    height: 30px;
+    width: 30px;
+    transition: all 0.15s ease-in-out;
+}
+header > .sidebar .sidebar--links a:hover img{
+    filter:invert(1);
+}
+header > .sidebar:hover .sidebar--links a img{
+    height: 50px;
+    width: 50px;
+}
+
+
+.perks--list{
+    display: flex;
+    flex-direction: row;
+    text-transform: uppercase;
+    align-items: start;
+    font-weight: 600;
+    border-right: 1px solid white;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid white;
+}
+.perks--list > div{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    /* border-bottom: 1px solid white; */
+    /* padding: 0.5em 0px; */
+    /* width: 100%; */
+    cursor: pointer;
+    position: relative;
+    transition: all 0.15s ease-in-out;
+    padding-right: 1em;
+    padding-left: 1em;
+}
+.perks--list > div:hover,
+.perks--list > div.active{
+    color:#fde910;
+}
+.perks--list > div:not(:last-child){
+    border-right: 1px solid white;
+}
+.perks--list > div::after{
+    content: "";
+    position: absolute;
+    bottom: 0px;
+    left: 1em;
+    width: 0px;
+    border-bottom: 1px solid white;
+    transition: all 0.15s ease-in-out;
+}
+.perks--list > div:hover::after{
+    width: calc(100% - 2em);
+}
+
+.perks--perk-info > div{
+    display: flex;
+    flex-direction: row;
+    text-transform: uppercase;
+    align-items: start;
+    /* gap: 1em; */
+    font-weight: 600;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid white;
+    cursor: pointer;
+}
+
+.perks--perk-info > div > span{
+    padding-right: 1em;
+    padding-left: 1em;
+}
+.perks--perk-info > div > span:hover,
+.perks--perk-info > div > span.active{
+    color:#fde910;
+}
+.perks--perk-info > div > span:not(:last-child){
+    border-right: 1px solid white;
+}
+
+.perks--recipes > div{
+    display: grid;
+    grid-template-columns: 300px 1fr;
+}
+.perks--recipes > div > div{
+    padding: 0px 10px;
+}
+.perks--recipes > div > div:nth-child(1){
+    border-right: 1px solid white;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.perks--recipes > div > div:nth-child(1) > div{
+    cursor: pointer;
+}
+.perks--recipes > div > div:nth-child(1) > div:hover,
+.perks--recipes > div > div:nth-child(1) > div.active{
+    color:#fde910;
+}
+
+.perks--recipes--recipe{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.perks--recipes--recipe > .perks--recipes--recipe--title{
+    border-bottom: 1px solid white;
+    padding-bottom: 15px;
+    display: flex;
+    flex-direction: row;
+    gap: 1em;
+}
+.perks--recipes--recipe > .perks--recipes--recipe--title img{
+    height: 5em;
+    width: 5em;
+}
+.perks--recipes--recipe > div:nth-child(1){
+    display: flex;
+    flex-direction: row;
+    gap: 1em
+}
+.perks--recipes--recipe > div:nth-child(1) span{
+    cursor: pointer;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+.perks--recipes--recipe > div:nth-child(1) span:active{
+    color:#fde910;
+}
+.perks--recipes--recipe > div:nth-child(3){
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+.perks--recipes--recipe > div:nth-child(3) > div{
+    padding: 0px 15px;
+}
+.perks--recipes--recipe--ing{
+    border-right: 1px solid white
+}
+.perks--recipes--recipe > div:nth-child(3) > div > div{
+    padding-bottom: 15px;
+    display: grid;
+    column-gap: 1em;
+    grid-template-columns: 3em 1fr 100px 150px 100px;
+}
+.perks--recipes--recipe > div:nth-child(3) > div > div img{
+    height: 3em;
+    width: 3em;
+}
+.perks--recipes--recipe > div:nth-child(3) > div > div.id{
+    width: 80px;
+}
+
+.perks--recipes--summary{
+    display: flex;
+    flex-direction: row;
+    gap: 2em;
+}
