@@ -9,6 +9,11 @@ body{
     padding-left: 100px;
     color: white;
 }
+body.recipe{
+    padding: 0px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
 a{
     /* color:#fde910; */
     /* text-decoration: none; */
@@ -31,6 +36,7 @@ header > .sidebar{
     transition: all 0.15s ease-in-out;
     padding: 10px;
     overflow: hidden;
+    z-index: 9999;
 }
 header > .sidebar:hover{
     width: 240px;
@@ -52,12 +58,12 @@ header > .sidebar:hover .sidebar--title span{
 header > .sidebar .sidebar--links{
     display: flex;
     flex-direction: column;
-    gap: 30px;
-    padding-top: 15px;
+    gap: 20px;
+    padding-top: 5px;
     transition: all 0.15s ease-in-out;
 }
 header > .sidebar:hover .sidebar--links{
-    gap: 10px;
+    gap: 20px;
     padding-top: 5px;
 }
 header > .sidebar .sidebar--links a{
@@ -84,8 +90,8 @@ header > .sidebar:hover .sidebar--links a span{
     opacity: 1;
 }
 header > .sidebar .sidebar--links a img{
-    height: 30px;
-    width: 30px;
+    height: 50px;
+    width: 50px;
     transition: all 0.15s ease-in-out;
 }
 header > .sidebar .sidebar--links a:hover img{
@@ -169,7 +175,7 @@ header > .sidebar:hover .sidebar--links a img{
 
 .perks--recipes > div{
     display: grid;
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: 300px calc(100% - 300px);
 }
 .perks--recipes > div > div{
     padding: 0px 10px;
@@ -186,6 +192,60 @@ header > .sidebar:hover .sidebar--links a img{
 .perks--recipes > div > div:nth-child(1) > div:hover,
 .perks--recipes > div > div:nth-child(1) > div.active{
     color:#fde910;
+}
+.perks--recipes--tabs-container{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.perks--recipes--tabs--controls{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    gap: 1em;
+    overflow: auto;
+}
+.perks--recipes--tabs--controls > div{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1em;
+    padding-right: 1em;
+    border-right: 1px solid white;
+}
+.perks--recipes--tabs--controls > div:not(:last-child){
+    padding-right: 1em;
+    border-right: 1px solid white;
+}
+.perks--recipes--tabs--controls > div.active{
+    color:#fde910;
+}
+.perks--recipes--tabs--controls > div img{
+    height: 1em;
+    width: 1em;
+    cursor: pointer;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+.perks--recipes--tabs--controls > div span{
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+.perks--recipes--tabs > webview{
+    height: fit-content;
+    width: 100%;
+    height: calc(100vh - 400px);
+}
+.perks--recipes--tabs > webview:not(.active){
+    display: none;
+}
+.perks--recipes--tabs{
+    width: 100%;
 }
 
 .perks--recipes--recipe{
@@ -238,8 +298,12 @@ header > .sidebar:hover .sidebar--links a img{
     height: 3em;
     width: 3em;
 }
-.perks--recipes--recipe > div:nth-child(3) > div > div.id{
+.perks--recipes--recipe > div:nth-child(3) > div .id{
     width: 80px;
+}
+.perks--recipes--recipe > div:nth-child(3) > div .craftable{
+    color: #4444da;
+    cursor: pointer;
 }
 
 .perks--recipes--summary{

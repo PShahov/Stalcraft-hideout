@@ -12,12 +12,13 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 
         <link rel="stylesheet" href="./public/style.css">
-        <script src="./helper.js"></script>
-        <script src="./const.js"></script>
     </head>
-    <body>
-        <h1 id="test"></h1>
+    <body class="recipe">
         <div class="perks--recipes--recipe">
+            <div>
+                <!-- <span onclick="moveInHistory(-1)">Туда</span>
+                <span onclick="moveInHistory(1)">Сюда</span> -->
+            </div>
             <div class="perks--recipes--recipe--title">
                 
             </div>
@@ -29,11 +30,170 @@
                     
                 </div>
             </div>
+            <div class="perks--recipes--summary">
+                <div>
+                    <h5>Выхлоп</h5>
+                    <span summary-ouput="0"></span>
+                </div>
+                <div>
+                    <h5>Затраты</h5>
+                    <span summary-price="0"></span>
+                </div>
+            </div>
         </div>
 
         <script>
-            require('./render_recipe.js');
+            const ipcRenderer = require("electron").ipcRenderer;
+
+            require('./render.js');
+            const shell = require('electron').shell
             db = require('./const.js');
+            helper = require('./helper.js');
+            console.log(db);
+            console.log(db);
+
+            var _history = [];
+            var currentHistoryMark = -1;
+
+            let params = new URLSearchParams(document.location.search);
+            showRecipe(parseInt(params.get("id")));
+
+            function showRecipe(n, keepHistory = true){
+                if(keepHistory){
+                    if(currentHistoryMark != _history.length - 1)
+                        _history.splice(currentHistoryMark + 1);
+                    if(_history.at(-1) != n)
+                        _history.push(n);
+                    currentHistoryMark = _history.length - 1;
+                }
+                {
+                    let rec = document.querySelectorAll(".perks--recipes--list > div");
+                    rec.forEach(e => {
+                        if(e == event.target) e.classList.add("active");
+                        else e.classList.remove("active");
+                    });
+                }
+                let title = document.querySelector(".perks--recipes--recipe--title");
+                console.log(db.recipes[n].result[0].item);
+                console.log(db.items);
+                title.innerHTML = `
+                    <img src="${db.url + db.items[db.recipes[n].result[0].item].icon}">
+                    <h5 >${db.items[db.recipes[n].result[0].item].name.lines.ru}<br>${db.recipes[n].result[0].amount} шт.</h5>
+                    <h5 class="id" onclick="openWiki('${db.recipes[n].result[0].item}')">${db.recipes[n].result[0].item}</h5>
+                    <h5 class="price" item-count="${db.recipes[n].result[0].amount}" item-id="i${db.recipes[n].result[0].item}"></h5>
+                    <h5 class="sell-ammount" selled-items-id="i${db.recipes[n].result[0].item}">0</h5>
+                `;
+                loadPrice(db.recipes[n].result[0].item);
+                let ing = document.querySelector(".perks--recipes--recipe--ing");
+                ing.innerHTML = "";
+                db.recipes[n].ingredients.forEach(i => {
+                    let div = document.createElement("div");
+                    let craftable = "";
+                    if(db.items[i.item].craftable){
+                        craftable = `onclick="ipcRenderer.sendToHost('showRecipe','${i.item}')"`;
+                    }
+                    div.innerHTML = `
+                        <img src="${db.url + db.items[i.item].icon}">
+                        <h5  ${craftable} class="${craftable == "" ? "" : "craftable"}">${db.items[i.item].name.lines.ru}<br>${i.amount} шт.</h5>
+                        <h5 class="id" onclick="openWiki('${i.item}')">${i.item}</h5>
+                        <h5 class="price" item-count="${i.amount}" item-id="i${i.item}"></h5>
+                        <h5 class="sell-ammount" selled-items-id="i${i.item}">0</h5>
+                    `;
+                    loadPrice(i.item);
+                    ing.appendChild(div);
+                });
+
+                let req = document.querySelector(".perks--recipes--recipe--req");
+                req.innerHTML = "";
+                db.recipes[n].requirements.features.forEach(i => {
+                    let div = document.createElement("div");
+                    if(db.hideout_tools[i] == ""){
+                        div.innerHTML = `
+                            <img src="./img/placeholder.svg">
+                            <h5>${i}</h5>
+                        `;
+                    }else{
+                        div.innerHTML = `
+                            <img src="${db.url + db.items[db.hideout_tools[i]].icon}">
+                            <h5>${db.items[db.hideout_tools[i]].name.lines.ru}</h5>
+                        `;
+                    }
+                    req.appendChild(div);
+                });
+                req.appendChild(document.createElement("hr"));
+                Object.keys(db.recipes[n].requirements.perks).forEach(key => {
+                    console.log(key, db.recipes[n].requirements.perks[key]);
+                    let div = document.createElement("div");
+                    div.innerHTML = `
+                        <img src="./img/placeholder.svg">
+                        <h5>Lvl ${db.numbers[db.recipes[n].requirements.perks[key]]}<br> ${db.perks[db.perkId[key]].name.lines.ru}</h5>
+                    `;
+                    req.appendChild(div);
+                });
+            }
+
+            function loadPrice(id){
+                helper.readTextFile(`https://stalcraft.wiki/next-api/auction-history?region=ru&id=${id}`, function(text){
+                    let data  = JSON.parse(text);
+                    let amount = data.total;
+                    let prices = [];
+                    let median = 0;
+                    data.prices.forEach(p => {
+                            amount++;
+                            prices.push(p.price);
+                    });
+                    median = helper.median(prices);
+
+                    let priceBlock = document.querySelector(`*[item-id=i${id}]`);
+                    if(priceBlock != undefined){
+                        priceBlock.innerText = `~${helper.numberWithSpaces(parseFloat(median).toFixed(0))} руб.`;
+                        priceBlock.setAttribute("item-price", (parseFloat(median).toFixed(0)));
+                        document.querySelector(`*[selled-items-id=i${id}]`).innerText = `${amount} шт.`;
+                    }
+                    updateSummary();
+                })
+            }
+
+            function updateSummary(){
+                // let summOut =  document.querySelector(".perks--recipes--summary > div:nth-child(1) > span");
+                // let summIn =  document.querySelector(".perks--recipes--summary > div:nth-child(2) > span");
+
+                let summOut =  document.querySelectorAll(".perks--recipes--recipe--title *[item-id]");
+                let summIn =  document.querySelectorAll(".perks--recipes--recipe--ing *[item-id]");
+                {
+                    summ = 0;
+                    for(let i = 0;i < summIn.length;i++){
+                        let s = parseFloat(summIn[i].getAttribute("item-price")) * parseFloat(summIn[i].getAttribute("item-count"));
+                        
+                        summ += s;
+                    }
+
+                    document.querySelector(".perks--recipes--summary > div:nth-child(2) > span").innerText = `${helper.numberWithSpaces(summ)} руб.`;
+                }
+
+                {
+                    summ = 0;
+                    for(let i = 0;i < summOut.length;i++){
+                        summ += parseFloat(summOut[i].getAttribute("item-price")) * parseFloat(summOut[i].getAttribute("item-count"));
+                    }
+
+                    document.querySelector(".perks--recipes--summary > div:nth-child(1) > span").innerText = `${helper.numberWithSpaces(summ)} руб.`;
+                }
+                
+            }
+
+            function openWiki(id){
+                helper.readTextFile(_DB_URL + db.items[id].data, function(text){
+                    let data  = JSON.parse(text);
+                    let category = {
+                        "bullet": "ammo",
+                        "misc": "other",
+                        "drink": "medicine",
+                        "food": "medicine",
+                    }
+                    shell.openExternal(`https://stalcraft.wiki/items/${category[data.category] || data.category}/${id}`);
+                })
+            }
         </script>
     </body>
 </html>

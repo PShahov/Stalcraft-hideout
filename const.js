@@ -36,10 +36,23 @@ module.exports.hideout_tools = _HIDEOUT_TOOLS;
 
 module.exports.numbers = ["N", "I","II","III","IV","V","VI","VII","IIX","IX","X"];
 
+
+
+_items = {};
+{
+    let data  = require("./db/listing.json");
+    data.forEach(e => {
+        let key = e.data.split("/").at(-1).split(".")[0];
+        e.craftable = false;
+        _items[key] = e;
+    });
+    module.exports.items = _items;
+}
+
 let _recipes;
 let _perks;
-helper.readTextFile(_DB_URL + "/hideout_recipes.json", function(text){
-    let data  = JSON.parse(text);
+{
+    let data  = require("./db/hideout_recipes.json")
     _recipes = data.recipes;
     _perks = data.perks;
     module.exports.recipes = _recipes;
@@ -47,10 +60,12 @@ helper.readTextFile(_DB_URL + "/hideout_recipes.json", function(text){
     for(let i = 0;i < _perks.length;i++){
         perkId[_perks[i].id] = i;
     }
+    module.exports.perkId = perkId;
     _perks.forEach(e => {
         e.maxLevel = 0;
     });
     _recipes.forEach(e => {
+        _items[e.result[0].item].craftable = true;
         if(e.requirements.perks == undefined) return;
         let perkKeys = Object.keys(e.requirements.perks);
         for(let i = 0;i < perkKeys.length;i++){
@@ -60,21 +75,43 @@ helper.readTextFile(_DB_URL + "/hideout_recipes.json", function(text){
     });
     
     module.exports.perks = _perks;
-});
+}
+// helper.readTextFile(_DB_URL + "/hideout_recipes.json", function(text){
+//     let data  = JSON.parse(text);
+//     _recipes = data.recipes;
+//     _perks = data.perks;
+//     module.exports.recipes = _recipes;
+//     let perkId = {};
+//     for(let i = 0;i < _perks.length;i++){
+//         perkId[_perks[i].id] = i;
+//     }
+//     module.exports.perkId = perkId;
+//     _perks.forEach(e => {
+//         e.maxLevel = 0;
+//     });
+//     _recipes.forEach(e => {
+//         if(e.requirements.perks == undefined) return;
+//         let perkKeys = Object.keys(e.requirements.perks);
+//         for(let i = 0;i < perkKeys.length;i++){
+//             if(_perks[perkId[perkKeys[i]]].maxLevel < e.requirements.perks[perkKeys[i]]) _perks[perkId[perkKeys[i]]].maxLevel = e.requirements.perks[perkKeys[i]];
+//         }
+//         return;
+//     });
+    
+//     module.exports.perks = _perks;
+// });
 
 
 const _RECIPES = _recipes;
 const _PERKS = _perks;
-
-_items = {};
-helper.readTextFile(_DB_URL + "/listing.json", function(text){
-    let data  = JSON.parse(text);
-    data.forEach(e => {
-        let key = e.data.split("/").at(-1).split(".")[0];
-        _items[key] = e;
-    });
-    module.exports.items = _items;
-})
+// helper.readTextFile(_DB_URL + "/listing.json", function(text){
+//     let data  = JSON.parse(text);
+//     data.forEach(e => {
+//         let key = e.data.split("/").at(-1).split(".")[0];
+//         _items[key] = e;
+//     });
+//     module.exports.items = _items;
+// })
 
 const _ITEMS = _items;
 

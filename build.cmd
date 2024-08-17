@@ -1,0 +1,1 @@
+electron-packager "%cd%" "Stalcraft hideout" --platform=win32 --arch=x64 --out ./build/

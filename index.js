@@ -20,8 +20,21 @@ function createWindow(){
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
-            preload: __dirname + "/const.js"
+            preload: __dirname + "/const.js",
+            
+            enableRemoteModule: true,
+            nodeIntegrationInSubFrames:true, //for subContent nodeIntegration Enable
+            webviewTag:true //for webView
         }
+        // webPreferences: {
+        //     nodeIntegration: true,
+        //     contextIsolation: false,
+        //     nativeWindowOpen: true,
+        //     enableRemoteModule: true,
+        //     sandbox:false,
+        //     nodeIntegrationInSubFrames:true, //for subContent nodeIntegration Enable
+        //     webviewTag:true //for webView
+        //   }
     });
 
     win.loadURL(url.format({
@@ -41,11 +54,19 @@ function createWindow(){
     });
 
     
-	globalShortcut.register('r', function() {
-		console.log('f5 is pressed');
-		win.reload();
-	})
 }
+
+app.on('browser-window-focus', () => {
+    if(!_INDEV){
+        globalShortcut.register('r', function() {
+            win.reload();
+        })
+    }
+  })
+  
+  app.on('browser-window-blur', () => {
+    globalShortcut.unregisterAll()
+  })
 
 app.on("ready", createWindow);
 

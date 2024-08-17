@@ -12,8 +12,6 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 
         <link rel="stylesheet" href="./public/style.css">
-        <script src="./helper.js"></script>
-        <script src="./const.js"></script>
     </head>
     <body>
         <header>
@@ -57,49 +55,35 @@
                         <div class="perks--recipes--list">
     
                         </div>
-                        <div class="perks--recipes--recipe">
-                            <div>
-                                <span onclick="moveInHistory(-1)">Туда</span>
-                                <span onclick="moveInHistory(1)">Сюда</span>
+                        <div class="perks--recipes--tabs-container">
+                            <div class="perks--recipes--tabs--controls">
+
                             </div>
-                            <div class="perks--recipes--recipe--title">
-                                
-                            </div>
-                            <div>
-                                <div class="perks--recipes--recipe--ing">
-                                    
-                                </div>
-                                <div class="perks--recipes--recipe--req">
-                                    
-                                </div>
-                            </div>
-                            <div class="perks--recipes--summary">
-                                <div>
-                                    <h5>Выхлоп</h5>
-                                    <span summary-ouput="0"></span>
-                                </div>
-                                <div>
-                                    <h5>Затраты</h5>
-                                    <span summary-price="0"></span>
-                                </div>
+                            <div class="perks--recipes--tabs" id="perks--recipes--tabs">
+
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        
-
-        
-        
+        </div>     
         <script>
+            document.body.addEventListener("mousedown",(e)=>{
+                if(e.button==1){
+                    e.preventDefault();
+                    return false;
+                }
+            });
             require('./render.js');
             const shell = require('electron').shell
             db = require('./const.js');
+            helper = require('./helper.js');
 
             var _history = [];
             var currentHistoryMark = -1;
+
+            var recipeViews = [];
+            var currentRecipeView = 0;
 
             let pList = document.querySelector(".perks--list");
             var selectedPerk = 0;
@@ -116,7 +100,10 @@
                 pList.appendChild(div);
             }
 
-            function selectPerk(n){
+            
+            const ipcRenderer = require("electron").ipcRenderer;
+
+            function selectPerk(n, level = 1){
                 selectedPerk = n;
                 {
                     pl = document.querySelectorAll(".perks--list > div");
@@ -139,7 +126,7 @@
                 }
                 document.querySelector(".perks--perk-info").appendChild(div);
 
-                selectLevel(1);
+                selectLevel(level);
             }
             function selectLevel(n){
                 selectedLevel = n;
@@ -166,7 +153,14 @@
                     if(r.requirements.perks[db.perks[selectedPerk].id] == selectedLevel){
                         let div = document.createElement("div");
                         let n = i;
-                        div.addEventListener("click", ()=>{showRecipe(n);})
+                        div.addEventListener("click", ()=>{
+                            showRecipe(n);
+                        })
+                        div.addEventListener("auxclick", ()=>{
+                            if (event.button == 1) {
+                                showRecipe(n, true, true);
+                            }
+                        })
                         div.innerText = db.items[r.result[0].item].name.lines.ru;
                         list.appendChild(div);
                     }
@@ -185,61 +179,103 @@
                 }
                 showRecipe(_history[currentHistoryMark], false);
             }
-            function showRecipe(n, keepHistory = true){
-                if(keepHistory){
-                    if(currentHistoryMark != _history.length - 1)
-                        _history.splice(currentHistoryMark + 1);
-                    if(_history.at(-1) != n)
-                        _history.push(n);
-                    currentHistoryMark = _history.length - 1;
-                }
-                {
-                    let rec = document.querySelectorAll(".perks--recipes--list > div");
-                    rec.forEach(e => {
-                        if(e == event.target) e.classList.add("active");
-                        else e.classList.remove("active");
-                    });
-                }
-                let title = document.querySelector(".perks--recipes--recipe--title");
-                title.innerHTML = `
-                    <img src="${db.url + db.items[db.recipes[n].result[0].item].icon}">
-                    <h5 >${db.items[db.recipes[n].result[0].item].name.lines.ru}<br>${db.recipes[n].result[0].amount} шт.</h5>
-                    <h5 class="id" onclick="openWiki('${db.recipes[n].result[0].item}')">${db.recipes[n].result[0].item}</h5>
-                    <h5 class="price" item-count="${db.recipes[n].result[0].amount}" item-id="i${db.recipes[n].result[0].item}"></h5>
-                    <h5 class="sell-ammount" selled-items-id="i${db.recipes[n].result[0].item}">0</h5>
-                `;
-                loadPrice(db.recipes[n].result[0].item);
-                let ing = document.querySelector(".perks--recipes--recipe--ing");
-                ing.innerHTML = "";
-                db.recipes[n].ingredients.forEach(i => {
-                    let div = document.createElement("div");
-                    div.innerHTML = `
-                        <img src="${db.url + db.items[i.item].icon}">
-                        <h5>${db.items[i.item].name.lines.ru}<br>${i.amount} шт.</h5>
-                        <h5 class="id" onclick="openWiki('${i.item}')">${i.item}</h5>
-                        <h5 class="price" item-count="${i.amount}" item-id="i${i.item}"></h5>
-                        <h5 class="sell-ammount" selled-items-id="i${i.item}">0</h5>
-                    `;
-                    loadPrice(i.item);
-                    ing.appendChild(div);
-                });
+            function showRecipe(n, keepHistory = true, aux = false){
+                let view = createWebview("web", `file://${__dirname}/recipe.html?id=${n}`);
+                
+                view.addEventListener("ipc-message",(event)=>{
+                    const {args,channel}=event;
 
-                let req = document.querySelector(".perks--recipes--recipe--req");
-                req.innerHTML = "";
-                db.recipes[n].requirements.features.forEach(i => {
-                    let div = document.createElement("div");
-                    if(db.hideout_tools[i] == ""){
-                        div.innerHTML = `
-                            <h5>${i}</h5>
-                        `;
-                    }else{
-                        div.innerHTML = `
-                            <img src="${db.url + db.items[db.hideout_tools[i]].icon}">
-                            <h5>${db.items[db.hideout_tools[i]].name.lines.ru}</h5>
-                        `;
+                    switch(channel){
+                        case "showRecipe":{
+                            let i = 0;
+                            db.recipes.forEach(recipe => {
+                                if(recipe.result[0].item == args[0]){
+                                    showRecipe(i, true, true);
+                                }
+                                i++;
+                            });
+                            break;
+                        }
                     }
-                    req.appendChild(div);
-                });
+                })
+                view.classList.add("active");
+
+                let tabContainer = document.querySelector(".perks--recipes--tabs--controls");
+                if(aux == false){
+                    let views = document.querySelector("#perks--recipes--tabs > webview.active");
+                    let tb = document.querySelector(".perks--recipes--tabs--controls > div.active");
+                    if(views != undefined)
+                        views.parentNode.removeChild(views);
+                    if(tb != undefined)
+                        tb.parentNode.removeChild(tb);
+                }else{
+                    {
+                        let views = document.querySelectorAll("#perks--recipes--tabs > webview.active");
+                        for(let i = 0;i < views.length;i++){
+                            views[i].classList.remove("active");
+                        }
+                    }
+                    {
+                        let tb = document.querySelectorAll(".perks--recipes--tabs--controls > div.active");
+                        for(let i = 0;i < tb.length;i++){
+                            tb[i].classList.remove("active");
+                        }
+                    }
+                }
+                document.getElementById("perks--recipes--tabs").appendChild(view);
+                let id = "webview-" + Date.now();
+                view.id = id;
+                currentRecipeView = id;
+
+                let tab = document.createElement("div");
+                tab.classList.add("active");
+                tab.innerHTML = `
+                    <span>${db.items[db.recipes[n].result[0].item].name.lines.ru}</span>
+                    <img src="./img/placeholder.svg">
+                `;
+
+                tab.querySelector("img").addEventListener("click",()=>{
+                    document.getElementById("perks--recipes--tabs").removeChild(document.getElementById(id));
+                    event.target.parentNode.parentNode.removeChild(event.target.parentNode);
+
+                    
+                    {
+                        let tb = document.querySelectorAll(".perks--recipes--tabs--controls > div.active");
+                        for(let i = 0;i < tb.length;i++){
+                            tb[i].classList.remove("active");
+                        }
+                    }
+                    {
+                        let views = document.querySelectorAll("#perks--recipes--tabs > webview.active");
+                        for(let i = 0;i < views.length;i++){
+                            views[i].classList.remove("active");
+                        }
+                    }
+
+                    if(document.querySelector("#perks--recipes--tabs > webview") != undefined){
+                        document.querySelector("#perks--recipes--tabs > webview").classList.add("active");
+                        document.querySelector(".perks--recipes--tabs--controls > div").classList.add("active");
+                    }
+                })
+                tab.querySelector("span").addEventListener("click",()=>{
+
+                    {
+                        let tb = document.querySelectorAll(".perks--recipes--tabs--controls > div.active");
+                        for(let i = 0;i < tb.length;i++){
+                            tb[i].classList.remove("active");
+                        }
+                    }
+                    {
+                        let views = document.querySelectorAll("#perks--recipes--tabs > webview.active");
+                        for(let i = 0;i < views.length;i++){
+                            views[i].classList.remove("active");
+                        }
+                    }
+                    event.target.parentNode.classList.add("active");
+
+                    document.getElementById(id).classList.add("active");
+                })
+                tabContainer.appendChild(tab);
             }
 
             function loadPrice(id){
@@ -264,34 +300,6 @@
                 })
             }
 
-            function updateSummary(){
-                // let summOut =  document.querySelector(".perks--recipes--summary > div:nth-child(1) > span");
-                // let summIn =  document.querySelector(".perks--recipes--summary > div:nth-child(2) > span");
-
-                let summOut =  document.querySelectorAll(".perks--recipes--recipe--title *[item-id]");
-                let summIn =  document.querySelectorAll(".perks--recipes--recipe--ing *[item-id]");
-                {
-                    summ = 0;
-                    for(let i = 0;i < summIn.length;i++){
-                        let s = parseFloat(summIn[i].getAttribute("item-price")) * parseFloat(summIn[i].getAttribute("item-count"));
-                        
-                        summ += s;
-                    }
-
-                    document.querySelector(".perks--recipes--summary > div:nth-child(2) > span").innerText = `${helper.numberWithSpaces(summ)} руб.`;
-                }
-
-                {
-                    summ = 0;
-                    for(let i = 0;i < summOut.length;i++){
-                        summ += parseFloat(summOut[i].getAttribute("item-price")) * parseFloat(summOut[i].getAttribute("item-count"));
-                    }
-
-                    document.querySelector(".perks--recipes--summary > div:nth-child(1) > span").innerText = `${helper.numberWithSpaces(summ)} руб.`;
-                }
-                
-            }
-
             function openWiki(id){
                 helper.readTextFile(_DB_URL + db.items[id].data, function(text){
                     let data  = JSON.parse(text);
@@ -303,6 +311,24 @@
                     }
                     shell.openExternal(`https://stalcraft.wiki/items/${category[data.category] || data.category}/${id}`);
                 })
+            }
+            
+            function createWebview(id, url) {
+                //creates a webview with the id of the tab and the url loaded
+                let webview = document.createElement("webview");
+                webview.setAttribute("id", id);
+                webview.setAttribute("src", url);
+                webview.setAttribute("nodeintegration", "");
+                webview.setAttribute("preload", "./const.js");
+                webview.setAttribute("webpreferences", "contextIsolation=false");
+                // webview.addEventListener('dom-ready', () => {
+                //     webview.openDevTools();
+                // });
+                webview.addEventListener("load",(webview)=>{
+                    console.log(obj.contentWindow.document.documentElement.scrollHeight);
+                    obj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 'px';
+                });
+                return webview;
             }
         </script>
     </body>
