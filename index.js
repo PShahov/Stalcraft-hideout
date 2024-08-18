@@ -5,7 +5,7 @@ const {app, BrowserWindow, screen, globalShortcut} = electron;
 
 const w = "wasd";
 
-const _INDEV = true;
+const _INDEV = false;
 
 let win;
 
@@ -58,7 +58,7 @@ function createWindow(){
 
 app.on('browser-window-focus', () => {
     if(!_INDEV){
-        globalShortcut.register('r', function() {
+        globalShortcut.register('f5', function() {
             win.reload();
         })
     }
