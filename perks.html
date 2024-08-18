@@ -33,14 +33,14 @@
                         <img src="./img/icon.png">
                         <span>Станки</span>
                     </a>
-                    <a href="./index.html">
+                    <a href="./recipe.html?id=0">
                         <img src="./img/icon.png">
                         <span>Предметы</span>
                     </a>
                 </div>
             </div>
         </header>
-
+        
         <div class="perks">
             <div class="perks--list">
                 
@@ -49,8 +49,8 @@
                 <div class="perks--perk-info">
     
                 </div>
+                <h4>Открываемые рецепты</h4>
                 <div class="perks--recipes">
-                    <h5>Открываемые рецепты</h5>
                     <div>
                         <div class="perks--recipes--list">
     
@@ -64,6 +64,12 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="perks--search">
+                <input type="text" placeholder="Поиск" onkeydown="search(this)">
+                <div class="perks--search--result">
+
                 </div>
             </div>
         </div>     
@@ -114,8 +120,8 @@
                 }
                 document.querySelector(".perks--perk-info").innerHTML = `
                     <h2>${db.perks[n].name.lines.ru}</h2>
-                    <h5>${db.perks[n].desc.lines.ru}</h5>
-                    <h5>Доступные уровни:</h5>
+                    <h4>${db.perks[n].desc.lines.ru}</h4>
+                    <h4>Доступные уровни:</h4>
                 `;
                 let div = document.createElement("div");
                 for(let i = 1;i < db.perks[n].maxLevel + 1;i++){
@@ -141,11 +147,6 @@
                 list.innerHTML = "";
                 let i = 0;
                 db.recipes.forEach(r => {
-                    // if(r.requirements.perk[db.perks[selectedPerk].id])
-                    // console.log(r.requirements.perks);
-                    // console.log(db.perks[selectedPerk].id);
-                    // console.log(r.requirements.perks[db.perks[selectedPerk].id]);
-                    // console.log(r.requirements.perks[db.perks[selectedPerk].id] == undefined);
                     if(r.requirements.perks[db.perks[selectedPerk].id] == undefined){
                         i++;
                         return;
@@ -161,7 +162,10 @@
                                 showRecipe(n, true, true);
                             }
                         })
-                        div.innerText = db.items[r.result[0].item].name.lines.ru;
+                        div.innerHTML = `
+                            <img src="${db.url + db.items[r.result[0].item].icon}">
+                            <h5>${db.items[r.result[0].item].name.lines.ru}</h5>
+                        `;
                         list.appendChild(div);
                     }
                     i++;
@@ -301,7 +305,7 @@
             }
 
             function openWiki(id){
-                helper.readTextFile(_DB_URL + db.items[id].data, function(text){
+                helper.readTextFile(db.url + db.items[id].data, function(text){
                     let data  = JSON.parse(text);
                     let category = {
                         "bullet": "ammo",
@@ -329,6 +333,62 @@
                     obj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 'px';
                 });
                 return webview;
+            }
+
+            
+            const MiniSearch = require('minisearch');
+
+            function search(ele){
+                if(event.key !== 'Enter')
+                    return;
+
+                
+                    let miniSearch = new MiniSearch({
+                        fields: ['id', 'name.lines.ru', 'name.lines.en'],
+                        extractField: (document, fieldName) => {
+                            // Access nested fields
+                            return fieldName.split('.').reduce((doc, key) => doc && doc[key], document)
+                        }
+                    });
+                // Index all documents
+                miniSearch.addAll(Object.keys(db.items).map((key) => db.items[key]))
+
+                // Search with default options
+                let results = miniSearch.search(ele.value,
+                {
+                    fields: ['id', 'name.lines.ru', 'name.lines.en'],
+                    prefix: true
+                })
+                let list = document.querySelector(".perks--search--result");
+                list.innerHTML = "";
+                results.forEach(r => {
+                    let div = document.createElement("div");
+                    div.innerHTML = `
+                        <img src="${db.url + db.items[r.id].icon}">
+                        <h5 onclick="openWiki('${db.items[r.id].id}')">${db.items[r.id].id}</h5>
+                        <h5>${db.items[r.id].name.lines.ru}</h5>
+                    `;
+                    
+                    if(db.items[r.id].craftable){
+                        div.classList.add("craftable")
+                        let i = 0;
+                        db.recipes.forEach(recipe => {
+                            if(recipe.result[0].item == r.id){
+                                let n = i;
+                                div.querySelector("h5:nth-child(3)").addEventListener("click", ()=>{
+                                    showRecipe(n);
+                                })
+                                div.querySelector("h5:nth-child(3)").addEventListener("auxclick", ()=>{
+                                    if (event.button == 1) {
+                                        showRecipe(n, true, true);
+                                    }
+                                })
+                            }
+                            i++;
+                        });
+                    }
+                    list.appendChild(div);
+                });
             }
         </script>
     </body>

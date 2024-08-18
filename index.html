@@ -57,44 +57,44 @@
 
             const MiniSearch = require('minisearch');
             const documents = [
-                {
-                    id: 1,
-                    title: 'Moby Dick',
-                    text: 'Call me Ishmael. Some years ago...',
-                    category: 'fiction'
-                },
-                {
-                    id: 2,
-                    title: 'Zen and the Art of Motorcycle Maintenance',
-                    text: 'I can see by my watch...',
-                    category: 'fiction'
-                },
-                {
-                    id: 3,
-                    title: 'Neuromancer',
-                    text: 'The sky above the port was...',
-                    category: 'fiction'
-                },
-                {
-                    id: 4,
-                    title: 'Zen and the Art of Archery',
-                    text: 'At first sight it must seem...',
-                    category: 'non-fiction'
-                },
-                // ...and more
-            ];
+            { id: 1, title: 'Moby Dick', author: { line:{name: 'Herman Melville wasd' }}, pubDate: new Date(1851, 9, 18) },
+            { id: 2, title: 'Zen and the Art of Motorcycle Maintenance ', author: { line:{name: 'Robert Pirsig test' } }, pubDate: new Date(1974, 3, 1) },
+            { id: 3, title: 'Neuromancer', author: { line:{name: 'William Gibson was' } }, pubDate: new Date(1984, 6, 1) },
+            { id: 4, title: 'Zen in the Art of Archery', author: { line:{name: 'Eugen Herrigel asd' } }, pubDate: new Date(1948, 0, 1) },
+            // ...and more
+            ]
             let miniSearch = new MiniSearch({
-                fields: ['title', 'text'], // fields to index for full-text search
-                storeFields: ['title', 'category'] // fields to return with search results
+                fields: ['title', 'author.line.name', 'pubYear'],
+                extractField: (document, fieldName) => {
+                    // Access nested fields
+                    return fieldName.split('.').reduce((doc, key) => doc && doc[key], document)
+                }
             });
             
             // Index all documents
             miniSearch.addAll(documents)
 
             // Search with default options
-            let results = miniSearch.search('zen', { fields: ['title'] })
+            let results = miniSearch.search('was',
+            {
+                fields: ['title', 'author.line.name', 'pubYear'],
+                prefix: true
+            })
 
             console.log(results);
+
+            // let deleted = 0;
+            // let mapped = Object.keys(db.items).map((key) => db.items[key]);
+            // let keys = Object.keys(db.items);
+            // mapped.forEach(e => {
+            //     if(keys.includes(e.id)){
+            //         delete db.items[e.id];
+            //         deleted++;
+            //     }
+            // });
+            // console.log(db.items);
+            // console.log(deleted);
         </script>
     </body>
 </html>
+

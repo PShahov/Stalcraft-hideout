@@ -44,6 +44,7 @@ _items = {};
     data.forEach(e => {
         let key = e.data.split("/").at(-1).split(".")[0];
         e.craftable = false;
+        e.id = key;
         _items[key] = e;
     });
     module.exports.items = _items;

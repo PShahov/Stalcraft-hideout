@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "electron": "^31.4.0",
     "minisearch": "^7.1.0"
+  },
+  "devDependencies": {
+    "electron": "^31.4.0"
   }
 }

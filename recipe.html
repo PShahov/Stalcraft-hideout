@@ -16,8 +16,8 @@
     <body class="recipe">
         <div class="perks--recipes--recipe">
             <div>
-                <!-- <span onclick="moveInHistory(-1)">Туда</span>
-                <span onclick="moveInHistory(1)">Сюда</span> -->
+                <span onclick="moveInHistory(-1)">← Туда</span>
+                <span onclick="moveInHistory(1)">Сюда →</span>
             </div>
             <div class="perks--recipes--recipe--title">
                 
@@ -40,9 +40,25 @@
                     <span summary-price="0"></span>
                 </div>
             </div>
+            <div class="perks--recipe--usage">
+                <div>
+                    <h5>Используется в крафте</h5>
+                    <div class="perks--recipe--usage-list">
+
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script>
+            
+            document.body.addEventListener("mousedown",(e)=>{
+                if(e.button==1){
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
             const ipcRenderer = require("electron").ipcRenderer;
 
             require('./render.js');
@@ -58,6 +74,18 @@
             let params = new URLSearchParams(document.location.search);
             showRecipe(parseInt(params.get("id")));
 
+            function moveInHistory(dir){
+                currentHistoryMark += dir;
+                if(currentHistoryMark < 0){
+                    currentHistoryMark = 0;
+                    return;
+                }
+                if(currentHistoryMark > _history.length - 1){
+                    currentHistoryMark = _history.length - 1;
+                    return;
+                }
+                showRecipe(_history[currentHistoryMark], false);
+            }
             function showRecipe(n, keepHistory = true){
                 if(keepHistory){
                     if(currentHistoryMark != _history.length - 1)
@@ -88,17 +116,33 @@
                 ing.innerHTML = "";
                 db.recipes[n].ingredients.forEach(i => {
                     let div = document.createElement("div");
-                    let craftable = "";
-                    if(db.items[i.item].craftable){
-                        craftable = `onclick="ipcRenderer.sendToHost('showRecipe','${i.item}')"`;
-                    }
                     div.innerHTML = `
                         <img src="${db.url + db.items[i.item].icon}">
-                        <h5  ${craftable} class="${craftable == "" ? "" : "craftable"}">${db.items[i.item].name.lines.ru}<br>${i.amount} шт.</h5>
+                        <h5 class="${db.items[i.item].craftable ? "craftable" : ""}">${db.items[i.item].name.lines.ru}<br>${i.amount} шт.</h5>
                         <h5 class="id" onclick="openWiki('${i.item}')">${i.item}</h5>
                         <h5 class="price" item-count="${i.amount}" item-id="i${i.item}"></h5>
                         <h5 class="sell-ammount" selled-items-id="i${i.item}">0</h5>
                     `;
+                    if(db.items[i.item].craftable){
+                        // div.
+                        // craftable = `onclick="ipcRenderer.sendToHost('showRecipe','${i.item}')"`;
+                        
+                        div.querySelector("h5:nth-child(2)").addEventListener("click", ()=>{
+                            console.log("click")
+                            for(let ii = 0;ii < db.recipes.length;ii++){
+                                if(db.recipes[ii].result[0].item == i.item){
+                                    showRecipe(ii);
+                                    break;
+                                }
+                            }
+                        })
+                        div.querySelector("h5:nth-child(2)").addEventListener("auxclick", ()=>{
+                            console.log("auxclick")
+                            if (event.button == 1) {
+                                ipcRenderer.sendToHost('showRecipe',i.item)
+                            }
+                        })
+                    }
                     loadPrice(i.item);
                     ing.appendChild(div);
                 });
@@ -130,6 +174,34 @@
                     `;
                     req.appendChild(div);
                 });
+
+                let usage = document.querySelector(".perks--recipe--usage-list");
+                let recipeNum = 0;
+                db.recipes.forEach(recipe => {
+                    recipe.ingredients.forEach(ingridient => {
+                        if(ingridient.item == db.recipes[n].result[0].item){
+                            let div = document.createElement("div");
+                            div.innerHTML = `
+                                <img src="${db.url + db.items[recipe.result[0].item].icon}">
+                                <h5 onclick="openWiki('${recipe.result[0].item}')">${recipe.result[0].item}</h5>
+                                <h5>${ingridient.amount}шт. для<br>${db.items[recipe.result[0].item].name.lines.ru}</h5>
+                            `;
+                            let n = recipeNum;
+                            div.querySelector("h5:nth-child(3)").addEventListener("click", ()=>{
+                                console.log("click")
+                                showRecipe(n);
+                            })
+                            div.querySelector("h5:nth-child(3)").addEventListener("auxclick", ()=>{
+                                console.log("auxclick")
+                                if (event.button == 1) {
+                                    ipcRenderer.sendToHost('showRecipe',recipe.result[0].item)
+                                }
+                            })
+                            usage.appendChild(div);
+                        }
+                    });
+                    recipeNum++;
+                });
             }
 
             function loadPrice(id){
@@ -146,7 +218,7 @@
 
                     let priceBlock = document.querySelector(`*[item-id=i${id}]`);
                     if(priceBlock != undefined){
-                        priceBlock.innerText = `~${helper.numberWithSpaces(parseFloat(median).toFixed(0))} руб.`;
+                        priceBlock.innerText = `~${helper.numberWithSpaces(parseFloat(median).toFixed(0))} ₽`;
                         priceBlock.setAttribute("item-price", (parseFloat(median).toFixed(0)));
                         document.querySelector(`*[selled-items-id=i${id}]`).innerText = `${amount} шт.`;
                     }
@@ -168,7 +240,7 @@
                         summ += s;
                     }
 
-                    document.querySelector(".perks--recipes--summary > div:nth-child(2) > span").innerText = `${helper.numberWithSpaces(summ)} руб.`;
+                    document.querySelector(".perks--recipes--summary > div:nth-child(2) > span").innerText = `${helper.numberWithSpaces(summ)}₽`;
                 }
 
                 {
@@ -177,13 +249,13 @@
                         summ += parseFloat(summOut[i].getAttribute("item-price")) * parseFloat(summOut[i].getAttribute("item-count"));
                     }
 
-                    document.querySelector(".perks--recipes--summary > div:nth-child(1) > span").innerText = `${helper.numberWithSpaces(summ)} руб.`;
+                    document.querySelector(".perks--recipes--summary > div:nth-child(1) > span").innerText = `${helper.numberWithSpaces(summ)}₽`;
                 }
                 
             }
 
             function openWiki(id){
-                helper.readTextFile(_DB_URL + db.items[id].data, function(text){
+                helper.readTextFile(db.url + db.items[id].data, function(text){
                     let data  = JSON.parse(text);
                     let category = {
                         "bullet": "ammo",

@@ -1,6 +1,25 @@
 :root{
     --bg-color: #000018;
+    --craftable-color:#9494ff;
 }
+
+/* width */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: rgba(241, 241, 241, 0.25);
+    border-radius: 5px;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: white;
+    border-radius: 5px;
+  }
 
 body{
     font-family: "Roboto";
@@ -8,6 +27,23 @@ body{
     padding: 30px;
     padding-left: 100px;
     color: white;
+    overflow: hidden;
+    font-size: 10px;
+}
+h1{
+    font-size: 4em;
+}
+h2{
+    font-size: 3.5em;
+}
+h3{
+    font-size: 3em;
+}
+h4{
+    font-size: 2em;
+}
+h5{
+    font-size: 1.5em;
 }
 body.recipe{
     padding: 0px;
@@ -47,6 +83,7 @@ header > .sidebar .sidebar--title{
     flex-direction: row;
     align-items: center;
     justify-content: start;
+    font-size: 18px;
 }
 header > .sidebar .sidebar--title span{
     transition: all 0.15s ease-in-out;
@@ -77,6 +114,7 @@ header > .sidebar .sidebar--links a{
     text-decoration: none;
     font-weight:600;
     color: white;
+    font-size: 1.5em;
 }
 header > .sidebar .sidebar--links a:hover{
     background-color: #ffffff;
@@ -102,7 +140,49 @@ header > .sidebar:hover .sidebar--links a img{
     width: 50px;
 }
 
-
+.perks{
+    width: calc(100% - 700px);
+    position: relative;
+}
+.perks > .perks--search{
+    position: absolute;
+    left: 100%;
+    top: 0px;
+    width: 700px;
+    height: 100%;
+    border-left: 1px solid white;
+    padding: 0px 10px;
+}
+input[type="text"]{
+    width: 100%;
+    font-size: 1.5em;
+    padding: 10px 15px;
+    border-radius: 10px;
+    outline: none;
+    border: none;
+    margin-bottom: 8px;
+}
+.perks--search--result{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    height: calc(100% - 50px);
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+.perks--search--result > div{
+    display: grid;
+    column-gap: 1em;
+    grid-template-columns: 50px 5em 1fr;
+    align-items: center;
+}
+.perks--search--result > div.craftable h5:nth-child(3){
+    color:var(--craftable-color);
+}
+.perks--search--result > div img{
+    height: 5em;
+    width: 5em;
+}
 .perks--list{
     display: flex;
     flex-direction: row;
@@ -127,6 +207,7 @@ header > .sidebar:hover .sidebar--links a img{
     transition: all 0.15s ease-in-out;
     padding-right: 1em;
     padding-left: 1em;
+    font-size: 1.5em;
 }
 .perks--list > div:hover,
 .perks--list > div.active{
@@ -160,10 +241,15 @@ header > .sidebar:hover .sidebar--links a img{
     border-bottom: 1px solid white;
     cursor: pointer;
 }
+.perks--perk-info h4{
+    line-height: 1.2em;
+    height: 2.4em;
+}
 
 .perks--perk-info > div > span{
     padding-right: 1em;
     padding-left: 1em;
+    font-size: 2em;
 }
 .perks--perk-info > div > span:hover,
 .perks--perk-info > div > span.active{
@@ -172,25 +258,42 @@ header > .sidebar:hover .sidebar--links a img{
 .perks--perk-info > div > span:not(:last-child){
     border-right: 1px solid white;
 }
-
+.perks--recipes{
+    height: calc(100vh - 60px - 350px - 32px);
+}
 .perks--recipes > div{
     display: grid;
     grid-template-columns: 300px calc(100% - 300px);
+    height: 100%;
 }
 .perks--recipes > div > div{
     padding: 0px 10px;
 }
-.perks--recipes > div > div:nth-child(1){
-    border-right: 1px solid white;
+.perks--recipes > div .perks--recipes--list{
     display: flex;
     flex-direction: column;
     gap: 10px;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
-.perks--recipes > div > div:nth-child(1) > div{
+.perks--recipes > div .perks--recipes--list > div{
     cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid white;
 }
-.perks--recipes > div > div:nth-child(1) > div:hover,
-.perks--recipes > div > div:nth-child(1) > div.active{
+.perks--recipes > div .perks--recipes--list > div img{
+    height: 3em;
+    width: 3em;
+}
+.perks--recipes > div .perks--recipes--list > div h5{
+    margin: 0px;
+}
+.perks--recipes > div .perks--recipes--list > div:hover,
+.perks--recipes > div .perks--recipes--list > div.active{
     color:#fde910;
 }
 .perks--recipes--tabs-container{
@@ -204,7 +307,11 @@ header > .sidebar:hover .sidebar--links a img{
     align-items: center;
     justify-content: start;
     gap: 1em;
-    overflow: auto;
+    overflow-y: hidden;
+    overflow-x: scroll;
+    padding-bottom: 10px;
+    height: 28px;
+    box-sizing: content-box;
 }
 .perks--recipes--tabs--controls > div{
     display: flex;
@@ -213,6 +320,7 @@ header > .sidebar:hover .sidebar--links a img{
     gap: 1em;
     padding-right: 1em;
     border-right: 1px solid white;
+    font-size: 1.5em;
 }
 .perks--recipes--tabs--controls > div:not(:last-child){
     padding-right: 1em;
@@ -255,10 +363,17 @@ header > .sidebar:hover .sidebar--links a img{
 }
 .perks--recipes--recipe > .perks--recipes--recipe--title{
     border-bottom: 1px solid white;
+    padding: 0px 15px;
     padding-bottom: 15px;
     display: flex;
     flex-direction: row;
     gap: 1em;
+    width: 50%;
+
+    
+    display: grid;
+    column-gap: 1em;
+    grid-template-columns: 5em 1fr 100px 150px 100px;
 }
 .perks--recipes--recipe > .perks--recipes--recipe--title img{
     height: 5em;
@@ -267,13 +382,14 @@ header > .sidebar:hover .sidebar--links a img{
 .perks--recipes--recipe > div:nth-child(1){
     display: flex;
     flex-direction: row;
-    gap: 1em
+    gap: 2em
 }
 .perks--recipes--recipe > div:nth-child(1) span{
     cursor: pointer;
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
+    font-size: 2em;
 }
 .perks--recipes--recipe > div:nth-child(1) span:active{
     color:#fde910;
@@ -292,17 +408,17 @@ header > .sidebar:hover .sidebar--links a img{
     padding-bottom: 15px;
     display: grid;
     column-gap: 1em;
-    grid-template-columns: 3em 1fr 100px 150px 100px;
+    grid-template-columns: 5em 1fr 100px 150px 100px;
 }
 .perks--recipes--recipe > div:nth-child(3) > div > div img{
-    height: 3em;
-    width: 3em;
+    height: 5em;
+    width: 5em;
 }
 .perks--recipes--recipe > div:nth-child(3) > div .id{
     width: 80px;
 }
 .perks--recipes--recipe > div:nth-child(3) > div .craftable{
-    color: #4444da;
+    color: var(--craftable-color);
     cursor: pointer;
 }
 
@@ -310,4 +426,30 @@ header > .sidebar:hover .sidebar--links a img{
     display: flex;
     flex-direction: row;
     gap: 2em;
+}
+.perks--recipes--summary span{
+    font-size: 1.5em;
+}
+
+.perks--recipe--usage{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+.perks--recipe--usage-list{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 300px;
+    overflow: auto;
+    padding: 0px 15px;
+}
+.perks--recipe--usage-list > div{
+    display: grid;
+    grid-template-columns: 5em 50px 1fr;
+    column-gap: 15px;
+    align-items: center;
+}
+.perks--recipe--usage-list > div img{
+    height: 5em;
+    width: 5em;
 }

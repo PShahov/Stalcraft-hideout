@@ -5,7 +5,7 @@ const {app, BrowserWindow, screen, globalShortcut} = electron;
 
 const w = "wasd";
 
-const _INDEV = false;
+const _INDEV = true;
 
 let win;
 
