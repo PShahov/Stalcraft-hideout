@@ -61,12 +61,9 @@
 
             const ipcRenderer = require("electron").ipcRenderer;
 
-            require('./render.js');
-            const shell = require('electron').shell
-            db = require('./const.js');
-            helper = require('./helper.js');
-            console.log(db);
-            console.log(db);
+            const render = require('./render.js');
+            db = render.db;
+            helper = render.helper;
 
             var _history = [];
             var currentHistoryMark = -1;
@@ -107,9 +104,9 @@
                 title.innerHTML = `
                     <img src="${db.url + db.items[db.recipes[n].result[0].item].icon}">
                     <h5 >${db.items[db.recipes[n].result[0].item].name.lines.ru}<br>${db.recipes[n].result[0].amount} шт.</h5>
-                    <h5 class="id" onclick="openWiki('${db.recipes[n].result[0].item}')">${db.recipes[n].result[0].item}</h5>
-                    <h5 class="price" item-count="${db.recipes[n].result[0].amount}" item-id="i${db.recipes[n].result[0].item}"></h5>
-                    <h5 class="sell-ammount" selled-items-id="i${db.recipes[n].result[0].item}">0</h5>
+                    <h5 class="id" onclick="helper.openWiki('${db.recipes[n].result[0].item}')">${db.recipes[n].result[0].item}</h5>
+                    <h5 class="price" item-count="${db.recipes[n].result[0].amount}" item-id="${db.recipes[n].result[0].item}"></h5>
+                    <h5 class="sell-ammount" selled-items-id="${db.recipes[n].result[0].item}">0</h5>
                 `;
                 loadPrice(db.recipes[n].result[0].item);
                 let ing = document.querySelector(".perks--recipes--recipe--ing");
@@ -119,13 +116,15 @@
                     div.innerHTML = `
                         <img src="${db.url + db.items[i.item].icon}">
                         <h5 class="${db.items[i.item].craftable ? "craftable" : ""}">${db.items[i.item].name.lines.ru}<br>${i.amount} шт.</h5>
-                        <h5 class="id" onclick="openWiki('${i.item}')">${i.item}</h5>
-                        <h5 class="price" item-count="${i.amount}" item-id="i${i.item}"></h5>
-                        <h5 class="sell-ammount" selled-items-id="i${i.item}">0</h5>
+                        <h5 class="id" onclick="helper.openWiki('${i.item}')">${i.item}</h5>
+                        <h5 class="price" item-count="${i.amount}" item-id="${i.item}"></h5>
+                        <h5 class="sell-ammount" selled-items-id="${i.item}">0</h5>
                     `;
                     if(db.items[i.item].craftable){
                         // div.
                         // craftable = `onclick="ipcRenderer.sendToHost('showRecipe','${i.item}')"`;
+                        
+                        div.querySelector("h5:nth-child(2)").setAttribute("craft-item-id", i.item);
                         
                         div.querySelector("h5:nth-child(2)").addEventListener("click", ()=>{
                             console.log("click")
@@ -154,13 +153,34 @@
                     if(db.hideout_tools[i] == ""){
                         div.innerHTML = `
                             <img src="./img/placeholder.svg">
-                            <h5>${i}</h5>
+                            <h5>${db.hideout_tools_name[i] == "" ? i : db.hideout_tools_name[i]}</h5>
                         `;
                     }else{
                         div.innerHTML = `
                             <img src="${db.url + db.items[db.hideout_tools[i]].icon}">
                             <h5>${db.items[db.hideout_tools[i]].name.lines.ru}</h5>
                         `;
+
+                        if(db.items[db.hideout_tools[i]].craftable){
+                            div.classList.add("craftable")
+                            div.querySelector("h5:nth-child(2)").setAttribute("craft-item-id", db.hideout_tools[i]);
+                            div.querySelector("h5:nth-child(2)").addEventListener("click", ()=>{
+                                console.log("click")
+                                for(let ii = 0;ii < db.recipes.length;ii++){
+                                    if(db.recipes[ii].result[0].item == db.hideout_tools[i]){
+                                        showRecipe(ii);
+                                        break;
+                                    }
+                                }
+                            })
+                            div.querySelector("h5:nth-child(2)").addEventListener("auxclick", ()=>{
+                                console.log("auxclick")
+                                if (event.button == 1) {
+                                    ipcRenderer.sendToHost('showRecipe',db.hideout_tools[i])
+                                }
+                            })
+                        }
+                        
                     }
                     req.appendChild(div);
                 });
@@ -183,7 +203,7 @@
                             let div = document.createElement("div");
                             div.innerHTML = `
                                 <img src="${db.url + db.items[recipe.result[0].item].icon}">
-                                <h5 onclick="openWiki('${recipe.result[0].item}')">${recipe.result[0].item}</h5>
+                                <h5 onclick="helper.openWiki('${recipe.result[0].item}')">${recipe.result[0].item}</h5>
                                 <h5>${ingridient.amount}шт. для<br>${db.items[recipe.result[0].item].name.lines.ru}</h5>
                             `;
                             let n = recipeNum;
@@ -208,19 +228,27 @@
                 helper.readTextFile(`https://stalcraft.wiki/next-api/auction-history?region=ru&id=${id}`, function(text){
                     let data  = JSON.parse(text);
                     let amount = data.total;
+                    let avg = 0;
                     let prices = [];
                     let median = 0;
                     data.prices.forEach(p => {
-                            amount++;
-                            prices.push(p.price);
+                        avg+= p.price;
+                        amount++;
+                        prices.push(p.price);
                     });
+                    avg /= amount;
                     median = helper.median(prices);
 
-                    let priceBlock = document.querySelector(`*[item-id=i${id}]`);
+                    let priceBlock = document.querySelector(`*[item-id="${id}"]`);
                     if(priceBlock != undefined){
-                        priceBlock.innerText = `~${helper.numberWithSpaces(parseFloat(median).toFixed(0))} ₽`;
+                        priceBlock.innerHTML = `
+                            MED ~${helper.numberWithSpaces(parseFloat(median).toFixed(0))} ₽
+                            <br>
+                            AVG ~${helper.numberWithSpaces(parseFloat(avg).toFixed(0))} ₽
+                        `;
                         priceBlock.setAttribute("item-price", (parseFloat(median).toFixed(0)));
-                        document.querySelector(`*[selled-items-id=i${id}]`).innerText = `${amount} шт.`;
+                        console.log(id);
+                        document.querySelector(`*[selled-items-id="${id}"]`).innerText= `${amount} шт.`;
                     }
                     updateSummary();
                 })
@@ -248,23 +276,9 @@
                     for(let i = 0;i < summOut.length;i++){
                         summ += parseFloat(summOut[i].getAttribute("item-price")) * parseFloat(summOut[i].getAttribute("item-count"));
                     }
-
                     document.querySelector(".perks--recipes--summary > div:nth-child(1) > span").innerText = `${helper.numberWithSpaces(summ)}₽`;
                 }
                 
-            }
-
-            function openWiki(id){
-                helper.readTextFile(db.url + db.items[id].data, function(text){
-                    let data  = JSON.parse(text);
-                    let category = {
-                        "bullet": "ammo",
-                        "misc": "other",
-                        "drink": "medicine",
-                        "food": "medicine",
-                    }
-                    shell.openExternal(`https://stalcraft.wiki/items/${category[data.category] || data.category}/${id}`);
-                })
             }
         </script>
     </body>

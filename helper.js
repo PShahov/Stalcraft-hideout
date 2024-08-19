@@ -1,3 +1,5 @@
+const shell = require('electron').shell
+
 function readTextFile(file, callback) {
     var rawFile = new XMLHttpRequest();
     rawFile.overrideMimeType("application/json");
@@ -35,3 +37,22 @@ function numberWithSpaces(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 module.exports.numberWithSpaces = numberWithSpaces;
+
+
+
+
+function openWiki(id){
+  console.log(id);
+  helper.readTextFile(db.url + db.items[id].data, function(text){
+      let data  = JSON.parse(text);
+      let category = {
+          "bullet": "ammo",
+          "misc": "other",
+          "drink": "medicine",
+          "food": "medicine",
+      }
+      shell.openExternal(`https://stalcraft.wiki/items/${category[data.category] || data.category}/${id}`);
+  })
+}
+
+module.exports.openWiki = openWiki;

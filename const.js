@@ -34,6 +34,25 @@ const _HIDEOUT_TOOLS = {
 }
 module.exports.hideout_tools = _HIDEOUT_TOOLS;
 
+const _HIDEOUT_TOOLS_NAME = {
+    "workbench":                    "Верстак",
+    "precise_tools":                "Прецизионный инструментарий",
+    "cnc":                          "ЧПУ",
+    "centrifuge":                   "Центрифуга",
+    "wrenches_kit":                 "Набор гаечных ключей",
+    "screwdrivers":                 "Набор отвёрток и щипцов",
+    "flasks_kit":                   "Набор колб и мензурок",
+    "calipers_kit":                 "Набор штангенциркулей",
+    "rotary_evaporator":            "Роторный испаритель",
+    "laser_level":                  "Лазерный уровень",
+    "laminar_box":                  "Ламинарный бокс",
+    "chromatographic_equipment":    "Хромотографическое оборудование",
+    "scalpels_kit":                 "Набор скальпелей",
+    "sterilization_system":         "Система стерилизации",
+    "fermentation_container":       "Тара для брожения",
+}
+module.exports.hideout_tools_name = _HIDEOUT_TOOLS_NAME;
+
 module.exports.numbers = ["N", "I","II","III","IV","V","VI","VII","IIX","IX","X"];
 
 

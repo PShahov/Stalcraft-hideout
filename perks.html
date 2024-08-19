@@ -29,9 +29,9 @@
                         <img src="./img/icon.png">
                         <span>Навыки</span>
                     </a>
-                    <a href="./index.html">
+                    <a href="./map.html">
                         <img src="./img/icon.png">
-                        <span>Станки</span>
+                        <span>Карта</span>
                     </a>
                     <a href="./recipe.html?id=0">
                         <img src="./img/icon.png">
@@ -80,10 +80,10 @@
                     return false;
                 }
             });
-            require('./render.js');
-            const shell = require('electron').shell
-            db = require('./const.js');
-            helper = require('./helper.js');
+            const render = require('./render.js');
+            db = render.db;
+            console.log(db);
+            helper = render.helper;
 
             var _history = [];
             var currentHistoryMark = -1;
@@ -164,8 +164,9 @@
                         })
                         div.innerHTML = `
                             <img src="${db.url + db.items[r.result[0].item].icon}">
-                            <h5>${db.items[r.result[0].item].name.lines.ru}</h5>
+                            <h5 craft-item-id="${r.result[0].item}">${db.items[r.result[0].item].name.lines.ru}</h5>
                         `;
+                        
                         list.appendChild(div);
                     }
                     i++;
@@ -303,19 +304,6 @@
                     updateSummary();
                 })
             }
-
-            function openWiki(id){
-                helper.readTextFile(db.url + db.items[id].data, function(text){
-                    let data  = JSON.parse(text);
-                    let category = {
-                        "bullet": "ammo",
-                        "misc": "other",
-                        "drink": "medicine",
-                        "food": "medicine",
-                    }
-                    shell.openExternal(`https://stalcraft.wiki/items/${category[data.category] || data.category}/${id}`);
-                })
-            }
             
             function createWebview(id, url) {
                 //creates a webview with the id of the tab and the url loaded
@@ -365,7 +353,7 @@
                     let div = document.createElement("div");
                     div.innerHTML = `
                         <img src="${db.url + db.items[r.id].icon}">
-                        <h5 onclick="openWiki('${db.items[r.id].id}')">${db.items[r.id].id}</h5>
+                        <h5 onclick="helper.openWiki('${db.items[r.id].id}')">${db.items[r.id].id}</h5>
                         <h5>${db.items[r.id].name.lines.ru}</h5>
                     `;
                     

@@ -1,13 +1,53 @@
 const path = require('path');
 const url = require('url');
 const electron = require('electron')
-const {app, BrowserWindow, screen, globalShortcut} = electron;
+const {app, BrowserWindow, screen, globalShortcut, Menu} = electron;
 
 const w = "wasd";
 
 const _INDEV = false;
 
 let win;
+
+
+  
+const ipcMain = require("electron").ipcMain;
+// main
+ipcMain.on('show-context-menu', (event, ...args) => {
+    console.log(args);
+    switch(args[0]){
+        case "craftable-item":{
+            console.log("1");
+            const template = [
+                {
+                    label: 'Wiki',
+                    click: () => { event.sender.send('craftable-item--context-menu-command', "wiki", args[1]) }
+                },
+                {
+                    label: 'Крафт-карта',
+                    click: () => { event.sender.send('craftable-item--context-menu-command', 'map', args[1]) }
+                },
+            ]
+            const menu = Menu.buildFromTemplate(template)
+            menu.popup({ window: BrowserWindow.fromWebContents(event.sender) })
+            break;
+        }
+        default:{
+            console.log("2");
+            const template = [
+                {
+                    label: 'Menu Item 1',
+                    click: () => { event.sender.send('context-menu-command', 'menu-item-1') }
+                },
+                { type: 'separator' },
+                { label: 'Menu Item 2', type: 'checkbox', checked: true }
+            ]
+            const menu = Menu.buildFromTemplate(template)
+            menu.popup({ window: BrowserWindow.fromWebContents(event.sender) })
+            break;
+        }
+    }
+})
 
 function createWindow(){
     const primaryDisplay = screen.getPrimaryDisplay()
